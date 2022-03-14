@@ -1,0 +1,72 @@
+# Github action to create cross repo PRs
+
+name: cross repository PR
+
+# This action triggers on workflow call
+on:
+  workflow_call:
+    inputs:
+      repositories:
+        description: Repositories to whom PR should be create, in format of a string JSON array
+        required: true
+        type: string
+
+      source_folder:
+        description: Folders or files to be mentioned in PR on any changes made to them  
+        required: true
+        type: string
+
+      destination_base_branch:
+        description: Base branch where your new changes should be applied / integrated into
+        required: false
+        type: string 
+        default: 'master'
+
+      destination_head_branch:
+        description: Head branch that contains the changes you want to integrate
+        required: true
+        type: string
+        default: 'new-updates'
+
+      user_email:
+        description: The GitHub user email associated with the API token secret.
+        required: true
+        type: string
+
+      user_name:
+        description: The GitHub username associated with the API token secret.
+        required: true
+        type: string
+
+      pull_request_reviewers:
+        description: The pull request reviewers. It can be only one (just like 'reviewer') or many (just like 'reviewer1,reviewer2,...')
+        required: false
+        type: string 
+        default: ''
+
+    secrets:
+      token:
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: 
+        repositories: ${{ fromJSON(inputs.repositories) }}
+    steps:
+    -   name: Check out HEAD
+        uses: actions/checkout@v2
+          
+    -   name: Create pull request
+        uses: paygoc6/action-pull-request-another-repo@v1.0.1
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.token }}
+        with:
+          source_folder: ${{ inputs.source_folder }}
+          destination_repo: ${{ matrix.repositories }}
+          destination_base_branch: ${{ inputs.destination_base_branch }}
+          destination_head_branch: ${{ inputs.destination_head_branch }}
+          user_email: ${{ inputs.user_email }}
+          user_name: ${{ inputs.user_name }}
+          pull_request_reviewers: ${{ inputs.user_name }}
