@@ -1,0 +1,68 @@
+# GitHub action to check the updated semantic version
+name: semantic version update check
+
+# This action triggers on pull requests on the develop and pre-release branches
+on:
+  workflow_call:
+    outputs:
+      current_version:
+        value: ${{ jobs.build.outputs.output1 }}
+      updated_version:
+        value: ${{ jobs.build.outputs.output1 }}
+
+
+
+# There is a build job which checks out the code and set up python on the runner (ubuntu-latest).
+# Then it installs the latest version of pip and also install python-semantic-release library.
+# After that it simply checks for the updated version (the version will not get updated as a noop is performed)
+# Gets the current and updated version and sends it as a comment on the PR
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        outputs:
+            output1: ${{ steps.get_versions.outputs.current_version }}
+            output2: ${{ steps.get_versions.outputs.updated_version }}
+
+        steps:
+        -   name: Check out HEAD
+            uses: actions/checkout@v2
+            with:
+                fetch-depth: 0
+
+        -   name: Clone repo-1 repository
+            uses: actions/checkout@v2
+            with:
+                repository: vaishnavimuley22/repo-1
+                path: resources/docs/2.x
+                ref: 2.x
+                fetch-depth: 0
+
+        -   name: Set up Python
+            uses: actions/setup-python@v2
+            with:
+                python-version: 3.8
+
+        -   name: Install Python Semantic Release Library
+            run: |
+                python3 -m pip install --upgrade pip
+                python3 -m pip install python-semantic-release
+
+        -   name: Check the updated version
+            run: |
+                semantic-release version --verbosity=DEBUG --noop
+                semantic-release version --noop
+
+        -   name: Get Versions
+            id: get_versions
+            run: |
+                echo "::set-output name=current_version::`semantic-release print-version --current --noop`"
+                echo "::set-output name=updated_version::`semantic-release print-version --noop`"
+
+        # -   name: Comment PR
+        #     uses: mshick/add-pr-comment@v1
+        #     env:
+        #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #     with:
+        #         message: |
+        #             Current version: ${{ steps.get_versions.outputs.current_version }}
+        #             Updated version based on commit: ${{ steps.get_versions.outputs.updated_version }}
