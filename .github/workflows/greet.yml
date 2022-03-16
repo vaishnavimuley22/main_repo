@@ -1,0 +1,31 @@
+name: Greeting 
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        description: Name of a person
+        required: true
+        type: string
+        default: 'Vaishnavi'
+    
+    outputs:
+      firstword:
+        description: "The first output string"
+        value: ${{ jobs.build.outputs.output1 }}
+
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      output1: ${{ steps.greet.outputs.firstword }}
+
+    steps:
+    -   name: Check out HEAD
+        uses: actions/checkout@v2
+
+    -   name: Greet a person
+        id: greet
+        run: |
+          echo "::set-output name=firstword::Hello ${{ inputs.name }}"
