@@ -8,7 +8,7 @@ on:
       current_version:
         value: ${{ jobs.build.outputs.output1 }}
       updated_version:
-        value: ${{ jobs.build.outputs.output1 }}
+        value: ${{ jobs.build.outputs.output2 }}
 
 
 
@@ -58,11 +58,11 @@ jobs:
                 echo "::set-output name=current_version::`semantic-release print-version --current --noop`"
                 echo "::set-output name=updated_version::`semantic-release print-version --noop`"
 
-        # -   name: Comment PR
-        #     uses: mshick/add-pr-comment@v1
-        #     env:
-        #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        #     with:
-        #         message: |
-        #             Current version: ${{ steps.get_versions.outputs.current_version }}
-        #             Updated version based on commit: ${{ steps.get_versions.outputs.updated_version }}
+        -   name: Comment PR
+            uses: mshick/add-pr-comment@v1
+            env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            with:
+                message: |
+                    Current version: ${{ steps.get_versions.outputs.current_version }}
+                    Updated version based on commit: ${{ steps.get_versions.outputs.updated_version }}
